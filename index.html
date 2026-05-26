@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Questões Dinâmicas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Gerador de Questões Diretas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -67,7 +67,7 @@
 
         .grid-filters {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -247,29 +247,23 @@
 <div class="container">
     <header>
         <h1><i class="fa-solid fa-graduation-cap"></i> Gerador de Questões</h1>
-        <p>Escolha os parâmetros para criar ou carregar uma questão personalizada</p>
+        <p>Selecione o conteúdo temático e o nível desejado para praticar</p>
     </header>
 
     <div class="card">
         <div class="grid-filters">
             <div class="form-group">
-                <label for="select-serie"><i class="fa-solid fa-layer-group"></i> Série</label>
-                <select id="select-serie" onchange="atualizarConteudos()">
-                    <option value="6_ano">6º Ano - Ensino Fundamental</option>
-                    <option value="9_ano">9º Ano - Ensino Fundamental</option>
-                    <option value="1_medio" selected>1º Ano - Ensino Médio</option>
-                    <option value="3_medio">3º Ano - Ensino Médio</option>
+                <label for="select-conteudo"><i class="fa-solid fa-book"></i> Conteúdo</label>
+                <select id="select-conteudo">
+                    <option value="Funções Afins" selected>Funções Afins</option>
+                    <option value="Equações do 2º Grau">Equações do 2º Grau</option>
+                    <option value="Teorema de Pitágoras">Teorema de Pitágoras</option>
+                    <option value="Porcentagem">Porcentagem</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="select-conteudo"><i class="fa-solid fa-book"></i> Conteúdo</label>
-                <select id="select-conteudo">
-                    </select>
-            </div>
-
-            <div class="form-group">
-                <label for="select-nivel"><i class="fa-solid fa-signal"></i> Nível</label>
+                <label for="select-nivel"><i class="fa-solid fa-signal"></i> Nível de Dificuldade</label>
                 <select id="select-nivel">
                     <option value="facil">Fácil</option>
                     <option value="medio" selected>Médio</option>
@@ -283,8 +277,8 @@
 
     <div id="box-questao" class="card question-box">
         <div class="question-header">
-            <span id="badge-serie" class="badge">1º Ano Médio</span>
-            <span id="badge-nivel" class="badge">Médio</span>
+            <span id="badge-conteudo" class="badge">Conteúdo</span>
+            <span id="badge-nivel" class="badge">Nível</span>
         </div>
         
         <div id="questao-texto" class="question-text">
@@ -303,128 +297,105 @@
 </div>
 
 <script>
-    // Banco de dados interno de conteúdos por série
-    const mapeamentoConteudos = {
-        "6_ano": ["Frações", "Sistema Decimal", "Geometria Básica"],
-        "9_ano": ["Equações do 2º Grau", "Teorema de Pitágoras", "Porcentagem"],
-        "1_medio": ["Funções Afins", "Funções Quadráticas", "Conjuntos Numéricos"],
-        "3_medio": ["Análise Combinatória", "Probabilidade", "Geometria Analítica"]
-    };
-
-    // Banco de dados estruturado de questões
+    // Banco de dados direto por Conteúdo -> Nível
     const bancoQuestoes = {
-        "1_medio": {
-            "Funções Afins": {
-                "facil": [
-                    {
-                        texto: "Uma função afim é dada pela lei f(x) = 3x + 5. Qual é o valor de f(2)?",
-                        opcoes: ["8", "10", "11", "15"],
-                        correta: 2, // Índice da opção "11"
-                        explicacao: "Substituindo x por 2 na função: f(2) = 3(2) + 5 = 6 + 5 = 11."
-                    },
-                    {
-                        texto: "Na função f(x) = -2x + 8, o coeficiente linear (onde a reta corta o eixo y) é igual a:",
-                        opcoes: ["-2", "8", "0", "4"],
-                        correta: 1,
-                        explicacao: "O coeficiente linear é o termo independente da função f(x) = ax + b, ou seja, o valor de 'b', que neste caso é 8."
-                    }
-                ],
-                "medio": [
-                    {
-                        texto: "O custo de produção de uma pequena empresa é composto por uma taxa fixa de R$ 50,00 mais R$ 3,00 por peça produzida. Qual é a lei da função que representa o custo C(x) em relação ao número x de peças?",
-                        opcoes: ["C(x) = 50x + 3", "C(x) = 3x + 50", "C(x) = 53x", "C(x) = 3x - 50"],
-                        correta: 1,
-                        explicacao: "O valor fixo é o coeficiente linear (50) e o valor variável por unidade é o coeficiente angular (3). Logo, C(x) = 3x + 50."
-                    },
-                    {
-                        texto: "Determine o zero (raiz) da função afim f(x) = 4x - 12.",
-                        opcoes: ["x = 3", "x = -3", "x = 4", "x = 12"],
-                        correta: 0,
-                        explicacao: "Para encontrar a raiz, fazemos f(x) = 0. Então: 4x - 12 = 0 => 4x = 12 => x = 12 / 4 = 3."
-                    }
-                ],
-                "dificil": [
-                    {
-                        texto: "Uma reta passa pelos pontos A(2, 5) e B(4, 9). A equação que representa essa função afim é:",
-                        opcoes: ["f(x) = 3x - 1", "f(x) = 2x + 1", "f(x) = 4x - 3", "f(x) = 2x + 5"],
-                        correta: 1,
-                        explicacao: "O coeficiente angular a = (9 - 5)/(4 - 2) = 4/2 = 2. Usando o ponto A(2,5) na fórmula y = ax + b: 5 = 2(2) + b => 5 = 4 + b => b = 1. Logo, f(x) = 2x + 1."
-                    }
-                ]
-            },
-            "Funções Quadráticas": {
-                "facil": [
-                    {
-                        texto: "Qual é a concavidade da parábola descrita pela função f(x) = -x² + 4x + 5?",
-                        opcoes: ["Voltada para cima", "Voltada para baixo", "Voltada para a direita", "Não possui concavidade"],
-                        correta: 1,
-                        explicacao: "Como o coeficiente 'a' é negativo (a = -1), a concavidade da parábola é voltada para baixo."
-                    }
-                ],
-                "medio": [],
-                "dificil": []
-            }
+        "Funções Afins": {
+            "facil": [
+                {
+                    texto: "Uma função afim é dada pela lei f(x) = 3x + 5. Qual é o valor de f(2)?",
+                    opcoes: ["8", "10", "11", "15"],
+                    correta: 2, // Índice correspondente a "11"
+                    explicacao: "Substituindo x por 2 na função: f(2) = 3(2) + 5 = 6 + 5 = 11."
+                },
+                {
+                    texto: "Na função f(x) = -2x + 8, o coeficiente linear (onde a reta corta o eixo y) é igual a:",
+                    opcoes: ["-2", "8", "0", "4"],
+                    correta: 1,
+                    explicacao: "O coeficiente linear é o termo independente 'b' da função f(x) = ax + b, que neste caso vale 8."
+                }
+            ],
+            "medio": [
+                {
+                    texto: "O custo de produção de uma pequena empresa é composto por uma taxa fixa de R$ 50,00 mais R$ 3,00 por peça produzida. Qual é a lei da função que representa o custo C(x) em relação ao número x de peças?",
+                    opcoes: ["C(x) = 50x + 3", "C(x) = 3x + 50", "C(x) = 53x", "C(x) = 3x - 50"],
+                    correta: 1,
+                    explicacao: "O valor fixo é o coeficiente linear (50) e o valor variável por unidade é o coeficiente angular (3). Logo, C(x) = 3x + 50."
+                },
+                {
+                    texto: "Determine o zero (raiz) da função afim f(x) = 4x - 12.",
+                    opcoes: ["x = 3", "x = -3", "x = 4", "x = 12"],
+                    correta: 0,
+                    explicacao: "Para encontrar a raiz, fazemos f(x) = 0. Então: 4x - 12 = 0 => 4x = 12 => x = 12 / 4 = 3."
+                }
+            ],
+            "dificil": [
+                {
+                    texto: "Uma reta passa pelos pontos A(2, 5) e B(4, 9). A equação que representa essa função afim é:",
+                    opcoes: ["f(x) = 3x - 1", "f(x) = 2x + 1", "f(x) = 4x - 3", "f(x) = 2x + 5"],
+                    correta: 1,
+                    explicacao: "O coeficiente angular a = (9 - 5)/(4 - 2) = 4/2 = 2. Aplicando o ponto A(2,5) em y = ax + b: 5 = 2(2) + b => b = 1. Portanto, f(x) = 2x + 1."
+                }
+            ]
         },
-        "9_ano": {
-            "Teorema de Pitágoras": {
-                "facil": [
-                    {
-                        texto: "Em um triângulo retângulo, os catetos medem 3 cm e 4 cm. Qual o valor da hipotenusa?",
-                        opcoes: ["5 cm", "7 cm", "12 cm", "25 cm"],
-                        correta: 0,
-                        explicacao: "Pelo Teorema de Pitágoras: h² = 3² + 4² => h² = 9 + 16 = 25 => h = 5 cm."
-                    }
-                ],
-                "medio": [],
-                "dificil": []
-            }
+        "Equações do 2º Grau": {
+            "facil": [
+                {
+                    texto: "Quais são as raízes da equação x² - 9 = 0?",
+                    opcoes: ["x = 3 e x = -3", "Apenas x = 3", "x = 0 e x = 9", "Não possui raízes reais"],
+                    correta: 0,
+                    explicacao: "Isolando o termo: x² = 9 => x = ±√9 => x = 3 ou x = -3."
+                }
+            ],
+            "medio": [],
+            "dificil": []
+        },
+        "Teorema de Pitágoras": {
+            "facil": [
+                {
+                    texto: "Em um triângulo retângulo, os catetos medem 3 cm e 4 cm. Qual o valor da hipotenusa?",
+                    opcoes: ["5 cm", "7 cm", "12 cm", "25 cm"],
+                    correta: 0,
+                    explicacao: "Pelo Teorema de Pitágoras: h² = 3² + 4² => h² = 9 + 16 = 25 => h = √25 = 5 cm."
+                }
+            ],
+            "medio": [],
+            "dificil": []
+        },
+        "Porcentagem": {
+            "facil": [
+                {
+                    texto: "Quanto é 20% de R$ 150,00?",
+                    opcoes: ["R$ 15,00", "R$ 20,00", "R$ 30,00", "R$ 45,00"],
+                    correta: 2,
+                    explicacao: "Para calcular a porcentagem: (20 / 100) * 150 = 0,2 * 150 = 30."
+                }
+            ],
+            "medio": [],
+            "dificil": []
         }
     };
 
     let questaoAtual = null;
 
-    // Inicializa os conteúdos ao carregar a página
-    window.onload = function() {
-        atualizarConteudos();
-    };
-
-    // Atualiza o select de conteúdos dependendo da série selecionada
-    function atualizarConteudos() {
-        const serieSel = document.getElementById("select-serie").value;
-        const conteudoSel = document.getElementById("select-conteudo");
-        
-        conteudoSel.innerHTML = "";
-        
-        const conteudos = mapeamentoConteudos[serieSel] || [];
-        conteudos.forEach(conteudo => {
-            let option = document.createElement("option");
-            option.value = conteudo;
-            option.textContent = conteudo;
-            conteudoSel.appendChild(option);
-        });
-    }
-
-    // Busca e exibe a questão na tela com base nos filtros
+    // Busca e exibe a questão na tela com base nos filtros selecionados
     function gerarQuestao() {
-        const serie = document.getElementById("select-serie").value;
         const conteudo = document.getElementById("select-conteudo").value;
         const nivel = document.getElementById("select-nivel").value;
         
-        // Resetar o estado da interface
+        // Resetar o estado da interface visual
         document.getElementById("feedback-box").style.display = "none";
         document.getElementById("btn-proxima").style.display = "none";
         document.getElementById("btn-verificar").style.display = "inline-flex";
 
-        // Procura no nosso banco estruturado
         try {
-            const listaQuestoes = bancoQuestoes[serie][conteudo][nivel];
+            const listaQuestoes = bancoQuestoes[conteudo][nivel];
             
             if (listaQuestoes && listaQuestoes.length > 0) {
-                // Sorteia uma das questões disponíveis para aquele filtro
+                // Sorteia uma das questões configuradas para o par específico
                 const indiceAleatorio = Math.floor(Math.random() * listaQuestoes.length);
                 questaoAtual = listaQuestoes[indiceAleatorio];
                 
-                renderizarQuestao(questaoAtual, nivel, document.getElementById("select-serie").options[document.getElementById("select-serie").selectedIndex].text);
+                renderizarQuestao(questaoAtual, conteudo, nivel);
             } else {
                 exibirErroFallback();
             }
@@ -433,13 +404,13 @@
         }
     }
 
-    // Insere o conteúdo da questão na interface de forma limpa
-    function renderizarQuestao(questao, nivel, textoSerie) {
+    // Monta o HTML dinâmico da questão sorteada
+    function renderizarQuestao(questao, conteudo, nivel) {
         const box = document.getElementById("box-questao");
         const textoContainer = document.getElementById("questao-texto");
         const alternativasContainer = document.getElementById("alternativas-container");
         
-        document.getElementById("badge-serie").textContent = textoSerie;
+        document.getElementById("badge-conteudo").textContent = conteudo;
         document.getElementById("badge-nivel").textContent = nivel;
         
         textoContainer.textContent = questao.texto;
@@ -460,24 +431,24 @@
         box.style.display = "block";
     }
 
-    // Exibe um aviso amigável caso não tenha questões cadastradas para o filtro
+    // Tratamento de interface quando não houver questões no nível selecionado
     function exibirErroFallback() {
         const box = document.getElementById("box-questao");
         const textoContainer = document.getElementById("questao-texto");
         const alternativasContainer = document.getElementById("alternativas-container");
         
-        document.getElementById("badge-serie").textContent = "Aviso";
+        document.getElementById("badge-conteudo").textContent = "Aviso";
         document.getElementById("badge-nivel").textContent = "-";
         
-        textoContainer.innerHTML = "<i class='fa-solid fa-triangle-exclamation' style='color:var(--error)'></i> Não encontramos questões específicas para este filtro no momento.";
-        alternativasContainer.innerHTML = "<p style='color: var(--text-secondary)'>Tente selecionar <b>1º Ano do Ensino Médio</b> + <b>Funções Afins</b> (níveis Fácil ou Médio) para ver uma simulação completa.</p>";
+        textoContainer.innerHTML = "<i class='fa-solid fa-triangle-exclamation' style='color:var(--error)'></i> Não há questões cadastradas para este filtro no momento.";
+        alternativasContainer.innerHTML = "<p style='color: var(--text-secondary)'>Dica: Selecione o conteúdo <b>Funções Afins</b> e mude para os níveis <b>Fácil</b> ou <b>Médio</b> para rodar um teste estruturado completo.</p>";
         
         document.getElementById("btn-verificar").style.display = "none";
         box.style.display = "block";
         questaoAtual = null;
     }
 
-    // Valida a resposta do usuário e mostra o feedback visual das alternativas
+    // Validação lógica da alternativa marcada
     function verificarResposta() {
         if (!questaoAtual) return;
         
@@ -492,10 +463,10 @@
         const feedbackBox = document.getElementById("feedback-box");
         const itensOpcao = document.querySelectorAll(".option-item");
         
-        // Bloquear novas marcações desativando os inputs de rádio temporariamente
+        // Desativa seleções adicionais
         document.querySelectorAll('input[name="alternativa"]').forEach(input => input.disabled = true);
 
-        // Destacar corretas e erradas usando as classes CSS
+        // Aplica cores verde (sucesso) ou vermelha (erro) nas caixas de opções
         itensOpcao.forEach((item, index) => {
             if (index === questaoAtual.correta) {
                 item.classList.add("correct");
@@ -506,10 +477,10 @@
 
         if (respostaUsuario === questaoAtual.correta) {
             feedbackBox.className = "feedback success";
-            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>Parabéns, você acertou!</b><br><br>${questaoAtual.explicacao}`;
+            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>Excelente, resposta correta!</b><br><br>${questaoAtual.explicacao}`;
         } else {
             feedbackBox.className = "feedback error";
-            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <b>Resposta incorreta.</b><br><br>${questaoAtual.explicacao}`;
+            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <b>Incorreto. Veja a resolução abaixo:</b><br><br>${questaoAtual.explicacao}`;
         }
         
         feedbackBox.style.display = "block";

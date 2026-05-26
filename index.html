@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Questões Dinâmicas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 2rem 1rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .grid-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group select {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            font-size: 1rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .question-box {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .badge {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            background-color: rgba(79, 70, 229, 0.04);
+            border-color: var(--primary);
+        }
+
+        .option-item input[type="radio"] {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option-item.correct {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            border-color: var(--success) !important;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        .option-item.wrong {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            border-color: var(--error) !important;
+            color: #991b1b;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feedback.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .feedback.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border-left: 4px solid var(--error);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 480px) {
+            .grid-filters {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-graduation-cap"></i> Gerador de Questões</h1>
+        <p>Escolha os parâmetros para criar ou carregar uma questão personalizada</p>
+    </header>
+
+    <div class="card">
+        <div class="grid-filters">
+            <div class="form-group">
+                <label for="select-serie"><i class="fa-solid fa-layer-group"></i> Série</label>
+                <select id="select-serie" onchange="atualizarConteudos()">
+                    <option value="6_ano">6º Ano - Ensino Fundamental</option>
+                    <option value="9_ano">9º Ano - Ensino Fundamental</option>
+                    <option value="1_medio" selected>1º Ano - Ensino Médio</option>
+                    <option value="3_medio">3º Ano - Ensino Médio</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="select-conteudo"><i class="fa-solid fa-book"></i> Conteúdo</label>
+                <select id="select-conteudo">
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="select-nivel"><i class="fa-solid fa-signal"></i> Nível</label>
+                <select id="select-nivel">
+                    <option value="facil">Fácil</option>
+                    <option value="medio" selected>Médio</option>
+                    <option value="dificil">Difícil</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn" onclick="gerarQuestao()"><i class="fa-solid fa-gears"></i> Gerar Questão</button>
+    </div>
+
+    <div id="box-questao" class="card question-box">
+        <div class="question-header">
+            <span id="badge-serie" class="badge">1º Ano Médio</span>
+            <span id="badge-nivel" class="badge">Médio</span>
+        </div>
+        
+        <div id="questao-texto" class="question-text">
+            </div>
+
+        <div id="alternativas-container" class="options-list">
+            </div>
+
+        <div id="feedback-box" class="feedback"></div>
+
+        <div class="action-buttons">
+            <button id="btn-verificar" class="btn" onclick="verificarResposta()"><i class="fa-solid fa-circle-check"></i> Verificar Resposta</button>
+            <button id="btn-proxima" class="btn" style="background-color: var(--text-secondary); display: none;" onclick="gerarQuestao()"><i class="fa-solid fa-arrow-right"></i> Próxima</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Banco de dados interno de conteúdos por série
+    const mapeamentoConteudos = {
+        "6_ano": ["Frações", "Sistema Decimal", "Geometria Básica"],
+        "9_ano": ["Equações do 2º Grau", "Teorema de Pitágoras", "Porcentagem"],
+        "1_medio": ["Funções Afins", "Funções Quadráticas", "Conjuntos Numéricos"],
+        "3_medio": ["Análise Combinatória", "Probabilidade", "Geometria Analítica"]
+    };
+
+    // Banco de dados estruturado de questões
+    const bancoQuestoes = {
+        "1_medio": {
+            "Funções Afins": {
+                "facil": [
+                    {
+                        texto: "Uma função afim é dada pela lei f(x) = 3x + 5. Qual é o valor de f(2)?",
+                        opcoes: ["8", "10", "11", "15"],
+                        correta: 2, // Índice da opção "11"
+                        explicacao: "Substituindo x por 2 na função: f(2) = 3(2) + 5 = 6 + 5 = 11."
+                    },
+                    {
+                        texto: "Na função f(x) = -2x + 8, o coeficiente linear (onde a reta corta o eixo y) é igual a:",
+                        opcoes: ["-2", "8", "0", "4"],
+                        correta: 1,
+                        explicacao: "O coeficiente linear é o termo independente da função f(x) = ax + b, ou seja, o valor de 'b', que neste caso é 8."
+                    }
+                ],
+                "medio": [
+                    {
+                        texto: "O custo de produção de uma pequena empresa é composto por uma taxa fixa de R$ 50,00 mais R$ 3,00 por peça produzida. Qual é a lei da função que representa o custo C(x) em relação ao número x de peças?",
+                        opcoes: ["C(x) = 50x + 3", "C(x) = 3x + 50", "C(x) = 53x", "C(x) = 3x - 50"],
+                        correta: 1,
+                        explicacao: "O valor fixo é o coeficiente linear (50) e o valor variável por unidade é o coeficiente angular (3). Logo, C(x) = 3x + 50."
+                    },
+                    {
+                        texto: "Determine o zero (raiz) da função afim f(x) = 4x - 12.",
+                        opcoes: ["x = 3", "x = -3", "x = 4", "x = 12"],
+                        correta: 0,
+                        explicacao: "Para encontrar a raiz, fazemos f(x) = 0. Então: 4x - 12 = 0 => 4x = 12 => x = 12 / 4 = 3."
+                    }
+                ],
+                "dificil": [
+                    {
+                        texto: "Uma reta passa pelos pontos A(2, 5) e B(4, 9). A equação que representa essa função afim é:",
+                        opcoes: ["f(x) = 3x - 1", "f(x) = 2x + 1", "f(x) = 4x - 3", "f(x) = 2x + 5"],
+                        correta: 1,
+                        explicacao: "O coeficiente angular a = (9 - 5)/(4 - 2) = 4/2 = 2. Usando o ponto A(2,5) na fórmula y = ax + b: 5 = 2(2) + b => 5 = 4 + b => b = 1. Logo, f(x) = 2x + 1."
+                    }
+                ]
+            },
+            "Funções Quadráticas": {
+                "facil": [
+                    {
+                        texto: "Qual é a concavidade da parábola descrita pela função f(x) = -x² + 4x + 5?",
+                        opcoes: ["Voltada para cima", "Voltada para baixo", "Voltada para a direita", "Não possui concavidade"],
+                        correta: 1,
+                        explicacao: "Como o coeficiente 'a' é negativo (a = -1), a concavidade da parábola é voltada para baixo."
+                    }
+                ],
+                "medio": [],
+                "dificil": []
+            }
+        },
+        "9_ano": {
+            "Teorema de Pitágoras": {
+                "facil": [
+                    {
+                        texto: "Em um triângulo retângulo, os catetos medem 3 cm e 4 cm. Qual o valor da hipotenusa?",
+                        opcoes: ["5 cm", "7 cm", "12 cm", "25 cm"],
+                        correta: 0,
+                        explicacao: "Pelo Teorema de Pitágoras: h² = 3² + 4² => h² = 9 + 16 = 25 => h = 5 cm."
+                    }
+                ],
+                "medio": [],
+                "dificil": []
+            }
+        }
+    };
+
+    let questaoAtual = null;
+
+    // Inicializa os conteúdos ao carregar a página
+    window.onload = function() {
+        atualizarConteudos();
+    };
+
+    // Atualiza o select de conteúdos dependendo da série selecionada
+    function atualizarConteudos() {
+        const serieSel = document.getElementById("select-serie").value;
+        const conteudoSel = document.getElementById("select-conteudo");
+        
+        conteudoSel.innerHTML = "";
+        
+        const conteudos = mapeamentoConteudos[serieSel] || [];
+        conteudos.forEach(conteudo => {
+            let option = document.createElement("option");
+            option.value = conteudo;
+            option.textContent = conteudo;
+            conteudoSel.appendChild(option);
+        });
+    }
+
+    // Busca e exibe a questão na tela com base nos filtros
+    function gerarQuestao() {
+        const serie = document.getElementById("select-serie").value;
+        const conteudo = document.getElementById("select-conteudo").value;
+        const nivel = document.getElementById("select-nivel").value;
+        
+        // Resetar o estado da interface
+        document.getElementById("feedback-box").style.display = "none";
+        document.getElementById("btn-proxima").style.display = "none";
+        document.getElementById("btn-verificar").style.display = "inline-flex";
+
+        // Procura no nosso banco estruturado
+        try {
+            const listaQuestoes = bancoQuestoes[serie][conteudo][nivel];
+            
+            if (listaQuestoes && listaQuestoes.length > 0) {
+                // Sorteia uma das questões disponíveis para aquele filtro
+                const indiceAleatorio = Math.floor(Math.random() * listaQuestoes.length);
+                questaoAtual = listaQuestoes[indiceAleatorio];
+                
+                renderizarQuestao(questaoAtual, nivel, document.getElementById("select-serie").options[document.getElementById("select-serie").selectedIndex].text);
+            } else {
+                exibirErroFallback();
+            }
+        } catch (e) {
+            exibirErroFallback();
+        }
+    }
+
+    // Insere o conteúdo da questão na interface de forma limpa
+    function renderizarQuestao(questao, nivel, textoSerie) {
+        const box = document.getElementById("box-questao");
+        const textoContainer = document.getElementById("questao-texto");
+        const alternativasContainer = document.getElementById("alternativas-container");
+        
+        document.getElementById("badge-serie").textContent = textoSerie;
+        document.getElementById("badge-nivel").textContent = nivel;
+        
+        textoContainer.textContent = questao.texto;
+        alternativasContainer.innerHTML = "";
+        
+        questao.opcoes.forEach((opcao, index) => {
+            const label = document.createElement("label");
+            label.className = "option-item";
+            label.setAttribute("for", "opt-" + index);
+            
+            label.innerHTML = `
+                <input type="radio" name="alternativa" id="opt-${index}" value="${index}">
+                <span>${opcao}</span>
+            `;
+            alternativasContainer.appendChild(label);
+        });
+        
+        box.style.display = "block";
+    }
+
+    // Exibe um aviso amigável caso não tenha questões cadastradas para o filtro
+    function exibirErroFallback() {
+        const box = document.getElementById("box-questao");
+        const textoContainer = document.getElementById("questao-texto");
+        const alternativasContainer = document.getElementById("alternativas-container");
+        
+        document.getElementById("badge-serie").textContent = "Aviso";
+        document.getElementById("badge-nivel").textContent = "-";
+        
+        textoContainer.innerHTML = "<i class='fa-solid fa-triangle-exclamation' style='color:var(--error)'></i> Não encontramos questões específicas para este filtro no momento.";
+        alternativasContainer.innerHTML = "<p style='color: var(--text-secondary)'>Tente selecionar <b>1º Ano do Ensino Médio</b> + <b>Funções Afins</b> (níveis Fácil ou Médio) para ver uma simulação completa.</p>";
+        
+        document.getElementById("btn-verificar").style.display = "none";
+        box.style.display = "block";
+        questaoAtual = null;
+    }
+
+    // Valida a resposta do usuário e mostra o feedback visual das alternativas
+    function verificarResposta() {
+        if (!questaoAtual) return;
+        
+        const selecionado = document.querySelector('input[name="alternativa"]:checked');
+        
+        if (!selecionado) {
+            alert("Por favor, selecione uma alternativa antes de verificar!");
+            return;
+        }
+        
+        const respostaUsuario = parseInt(selecionado.value);
+        const feedbackBox = document.getElementById("feedback-box");
+        const itensOpcao = document.querySelectorAll(".option-item");
+        
+        // Bloquear novas marcações desativando os inputs de rádio temporariamente
+        document.querySelectorAll('input[name="alternativa"]').forEach(input => input.disabled = true);
+
+        // Destacar corretas e erradas usando as classes CSS
+        itensOpcao.forEach((item, index) => {
+            if (index === questaoAtual.correta) {
+                item.classList.add("correct");
+            } else if (index === respostaUsuario) {
+                item.classList.add("wrong");
+            }
+        });
+
+        if (respostaUsuario === questaoAtual.correta) {
+            feedbackBox.className = "feedback success";
+            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>Parabéns, você acertou!</b><br><br>${questaoAtual.explicacao}`;
+        } else {
+            feedbackBox.className = "feedback error";
+            feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <b>Resposta incorreta.</b><br><br>${questaoAtual.explicacao}`;
+        }
+        
+        feedbackBox.style.display = "block";
+        document.getElementById("btn-verificar").style.display = "none";
+        document.getElementById("btn-proxima").style.display = "inline-flex";
+    }
+</script>
+
+</body>
+</html>
